@@ -80,7 +80,7 @@ dev_dependencies:
   injectable_generator: ^2.4.1
   retrofit_generator: ^8.0.6
   json_serializable: ^6.7.1
-  stacked_generator: ^1.4.0
+  stacked_generator: ^1.6.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

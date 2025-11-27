@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:auto_route/auto_route.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import 'login_viewmodel.dart';
 
+@RoutePage()
 class LoginView extends StatelessWidget {
   const LoginView({Key? key}) : super(key: key);
 

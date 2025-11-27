@@ -2,14 +2,14 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import '../../../../app/app.locator.dart';
-import '../../../../app/app.router.dart';
+import '../../../../app/router.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/services/api_service.dart';
 import '../../../../core/services/auth_service.dart';
 
 class ShipmentsListViewModel extends BaseViewModel {
   final _apiService = locator<ApiService>();
-  final _navigationService = locator<NavigationService>();
+  final _router = locator<AppRouter>();
   final _authService = locator<AuthService>();
   final _snackbarService = locator<SnackbarService>();
 
@@ -128,27 +128,24 @@ class ShipmentsListViewModel extends BaseViewModel {
   }
 
   void navigateToCreateShipment() {
-    _navigationService.navigateTo(Routes.createShipmentView);
+    _router.push(const CreateShipmentRoute());
   }
 
   void navigateToShipmentDetail(Shipment shipment) {
-    _navigationService.navigateTo(
-      Routes.shipmentDetailView,
-      arguments: ShipmentDetailViewArguments(shipment: shipment),
-    );
+    _router.push(ShipmentDetailRoute(id: shipment.id.toString()));
   }
 
   void navigateToUsers() {
-    _navigationService.navigateTo(Routes.usersView);
+    _router.push(const UsersRoute());
   }
 
   void navigateToTrack() {
-    _navigationService.navigateTo(Routes.trackView);
+    _router.push(const TrackRoute());
   }
 
   Future<void> logout() async {
     await _authService.logout();
-    _navigationService.replaceWith(Routes.loginView);
+    _router.replaceAll([const LoginRoute()]);
   }
 
   User? get currentUser => _authService.currentUser;

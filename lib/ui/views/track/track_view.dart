@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:auto_route/auto_route.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/models/models.dart';
 import 'track_viewmodel.dart';
 
+@RoutePage()
 class TrackView extends StatelessWidget {
   const TrackView({Key? key}) : super(key: key);
 
