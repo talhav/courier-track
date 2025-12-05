@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_route/auto_route.dart';
@@ -10,7 +11,7 @@ import 'create_shipment_viewmodel.dart';
 
 @RoutePage()
 class CreateShipmentView extends StatelessWidget {
-  const CreateShipmentView({Key? key}) : super(key: key);
+  const CreateShipmentView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +110,9 @@ class CreateShipmentView extends StatelessWidget {
                                       fillColor: AppColors.surface,
                                     ),
                                     keyboardType: TextInputType.phone,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
                                   ),
                                 ),
                               ],
@@ -196,6 +200,9 @@ class CreateShipmentView extends StatelessWidget {
                                       fillColor: AppColors.surface,
                                     ),
                                     keyboardType: TextInputType.phone,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
                                   ),
                                 ),
                               ],
@@ -307,11 +314,14 @@ class CreateShipmentView extends StatelessWidget {
                             child: TextFormField(
                               controller: model.piecesController,
                               decoration: const InputDecoration(
-                                labelText: 'Pieces',
+                                labelText: 'Pieces *',
                                 filled: true,
                                 fillColor: AppColors.surface,
                               ),
                               keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
                             ),
                           ),
                           const SizedBox(width: AppSizes.paddingSm),
@@ -452,7 +462,7 @@ class CreateShipmentView extends StatelessWidget {
                               child: TextFormField(
                                 controller: model.lengthController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Length',
+                                  labelText: 'Length *',
                                   filled: true,
                                   fillColor: AppColors.surface,
                                 ),
@@ -464,7 +474,7 @@ class CreateShipmentView extends StatelessWidget {
                               child: TextFormField(
                                 controller: model.widthController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Width',
+                                  labelText: 'Width *',
                                   filled: true,
                                   fillColor: AppColors.surface,
                                 ),
@@ -476,7 +486,7 @@ class CreateShipmentView extends StatelessWidget {
                               child: TextFormField(
                                 controller: model.heightController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Height',
+                                  labelText: 'Height *',
                                   filled: true,
                                   fillColor: AppColors.surface,
                                 ),
