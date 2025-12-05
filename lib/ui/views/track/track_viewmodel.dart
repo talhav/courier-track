@@ -15,6 +15,9 @@ class TrackViewModel extends BaseViewModel {
   Shipment? _foundShipment;
   Shipment? get foundShipment => _foundShipment;
 
+  List<StatusHistoryItem> _statusHistory = [];
+  List<StatusHistoryItem> get statusHistory => _statusHistory;
+
   bool _hasSearched = false;
   bool get hasSearched => _hasSearched;
 
@@ -32,9 +35,12 @@ class TrackViewModel extends BaseViewModel {
     setBusy(true);
     _hasSearched = false;
     _foundShipment = null;
+    _statusHistory = [];
 
     try {
-      _foundShipment = await _apiService.trackShipment(trackingNumber);
+      final response = await _apiService.trackShipment(trackingNumber);
+      _foundShipment = Shipment.fromJson(response.shipment);
+      _statusHistory = response.statusHistory;
       _hasSearched = true;
 
       if (_foundShipment == null) {

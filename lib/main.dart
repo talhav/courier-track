@@ -18,7 +18,7 @@ void main() async {
 
   // Create Dio instance
   final dio = Dio(BaseOptions(
-    baseUrl: 'https://api.couriertrack.com',
+    baseUrl: 'http://localhost:3000/api',
     connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 30),
     headers: {
@@ -31,8 +31,8 @@ void main() async {
   // Register services manually
   locator.registerLazySingleton(() => prefs);
   locator.registerLazySingleton(() => dio);
-  locator.registerLazySingleton(() => AuthService(prefs));
   locator.registerLazySingleton(() => ApiService(dio));
+  locator.registerLazySingleton(() => AuthService(prefs, locator<ApiService>()));
 
   runApp(const MyApp());
 }

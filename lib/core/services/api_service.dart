@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
+import '../config/api_config.dart';
 import '../models/models.dart';
 
 @lazySingleton
@@ -8,8 +9,33 @@ class ApiService {
 
   ApiService(this._dio);
 
+  // Authentication APIs
+  Future<LoginResponse> login(String email, String password) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.login,
+        data: {
+          'email': email,
+          'password': password,
+        },
+      );
+      return LoginResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<User> getProfile() async {
+    try {
+      final response = await _dio.get(ApiConfig.profile);
+      return User.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // Shipment APIs
-  Future<List<Shipment>> getShipments({
+  Future<PaginatedResponse<Shipment>> getShipments({
     DateTime? startDate,
     DateTime? endDate,
     String? destination,
@@ -19,196 +45,235 @@ class ApiService {
     int limit = 10,
   }) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 500));
+      final queryParams = <String, dynamic>{
+        'page': page,
+        'limit': limit,
+      };
 
-      // Mock data
-      return _generateMockShipments(limit);
-    } catch (e) {
-      throw Exception('Failed to fetch shipments: $e');
+      if (startDate != null) {
+        queryParams['startDate'] = startDate.toIso8601String();
+      }
+      if (endDate != null) {
+        queryParams['endDate'] = endDate.toIso8601String();
+      }
+      if (destination != null && destination.isNotEmpty) {
+        queryParams['destination'] = destination;
+      }
+      if (service != null) {
+        queryParams['service'] = service.name;
+      }
+      if (status != null) {
+        queryParams['status'] = status.name;
+      }
+
+      final response = await _dio.get(
+        ApiConfig.shipments,
+        queryParameters: queryParams,
+      );
+
+      return PaginatedResponse<Shipment>.fromJson(
+        response.data,
+        (json) => Shipment.fromJson(json as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
   Future<Shipment> getShipmentById(String id) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      return _generateMockShipments(1).first;
-    } catch (e) {
-      throw Exception('Failed to fetch shipment: $e');
+      final response = await _dio.get('${ApiConfig.shipments}/$id');
+      return Shipment.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
   Future<Shipment> createShipment(Shipment shipment) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      return shipment.copyWith(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        consigneeNumber: 'CN${DateTime.now().millisecondsSinceEpoch}',
-        status: ShipmentStatus.pending,
-        createdAt: DateTime.now(),
+      final response = await _dio.post(
+        ApiConfig.shipments,
+        data: shipment.toJson(),
       );
-    } catch (e) {
-      throw Exception('Failed to create shipment: $e');
+      return Shipment.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
   Future<Shipment> updateShipment(String id, Shipment shipment) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      return shipment.copyWith(
-        id: id,
-        updatedAt: DateTime.now(),
+      final response = await _dio.put(
+        '${ApiConfig.shipments}/$id',
+        data: shipment.toJson(),
       );
-    } catch (e) {
-      throw Exception('Failed to update shipment: $e');
+      return Shipment.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
   Future<bool> deleteShipment(String id) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 300));
-
+      await _dio.delete('${ApiConfig.shipments}/$id');
       return true;
-    } catch (e) {
-      throw Exception('Failed to delete shipment: $e');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Shipment> duplicateShipment(String id, InvoiceType invoiceType) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConfig.shipments}/$id/duplicate',
+        data: {
+          'invoiceType': invoiceType.name,
+        },
+      );
+      return Shipment.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
   // Track Shipment
-  Future<Shipment?> trackShipment(String trackingNumber) async {
+  Future<TrackingResponse> trackShipment(String consigneeNumber) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 500));
+      final response = await _dio.get('${ApiConfig.track}/$consigneeNumber');
+      return TrackingResponse.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
 
-      return _generateMockShipments(1).first;
-    } catch (e) {
-      throw Exception('Failed to track shipment: $e');
+  Future<List<StatusHistoryItem>> getStatusHistory(String shipmentId) async {
+    try {
+      final response = await _dio.get('${ApiConfig.shipments}/$shipmentId/status-history');
+      return (response.data as List)
+          .map((json) => StatusHistoryItem.fromJson(json))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<StatusHistoryItem> addStatusUpdate(
+    String shipmentId,
+    String status, {
+    String? location,
+    String? notes,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConfig.shipments}/$shipmentId/status',
+        data: {
+          'status': status,
+          if (location != null) 'location': location,
+          if (notes != null) 'notes': notes,
+        },
+      );
+      return StatusHistoryItem.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
   // User APIs
   Future<List<User>> getUsers() async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      return _generateMockUsers();
-    } catch (e) {
-      throw Exception('Failed to fetch users: $e');
+      final response = await _dio.get(ApiConfig.users);
+      return (response.data as List)
+          .map((json) => User.fromJson(json))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
-  Future<User> createUser(User user) async {
+  Future<User> getUserById(String id) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      return user.copyWith(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        createdAt: DateTime.now(),
-      );
-    } catch (e) {
-      throw Exception('Failed to create user: $e');
+      final response = await _dio.get('${ApiConfig.users}/$id');
+      return User.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
-  Future<User> updateUser(User user) async {
+  Future<User> createUser(User user, String password) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 500));
+      final data = user.toJson();
+      data['password'] = password;
 
-      return user.copyWith(
-        updatedAt: DateTime.now(),
+      final response = await _dio.post(
+        ApiConfig.users,
+        data: data,
       );
-    } catch (e) {
-      throw Exception('Failed to update user: $e');
+      return User.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<User> updateUser(String id, User user) async {
+    try {
+      final response = await _dio.put(
+        '${ApiConfig.users}/$id',
+        data: user.toJson(),
+      );
+      return User.fromJson(response.data);
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
   Future<bool> deleteUser(String id) async {
     try {
-      // TODO: Replace with actual API call
-      await Future.delayed(const Duration(milliseconds: 300));
-
+      await _dio.delete('${ApiConfig.users}/$id');
       return true;
-    } catch (e) {
-      throw Exception('Failed to delete user: $e');
+    } on DioException catch (e) {
+      throw _handleError(e);
     }
   }
 
-  // Mock data generators
-  List<Shipment> _generateMockShipments(int count) {
-    return List.generate(count, (index) {
-      final now = DateTime.now();
-      return Shipment(
-        id: 'SHP${1000 + index}',
-        consigneeNumber: 'CN${1000 + index}',
-        service: ServiceType.values[index % ServiceType.values.length],
-        status: ShipmentStatus.values[index % ShipmentStatus.values.length],
-        companyName: 'Company ${index + 1}',
-        shipperName: 'Shipper ${index + 1}',
-        shipperPhone: '+1234567890',
-        shipperAddress: '123 Shipper St',
-        shipperCountry: 'US',
-        shipperCity: 'New York',
-        shipperPostal: '10001',
-        consigneeCompanyName: 'Consignee Co ${index + 1}',
-        receiverName: 'Receiver ${index + 1}',
-        receiverEmail: 'receiver${index + 1}@example.com',
-        receiverPhone: '+0987654321',
-        receiverAddress: '456 Receiver Ave',
-        receiverCountry: 'GB',
-        receiverCity: 'London',
-        receiverZip: 'SW1A 1AA',
-        accountNo: 'ACC${1000 + index}',
-        shipmentType: ShipmentType.values[index % ShipmentType.values.length],
-        pieces: index + 1,
-        description: 'Sample shipment ${index + 1}',
-        fragile: index % 2 == 0,
-        currency: CurrencyType.values[index % CurrencyType.values.length],
-        shipperReference: 'REF${index + 1}',
-        comments: 'Test comment',
-        createdAt: now.subtract(Duration(days: index)),
+  Future<bool> updateUserPassword(String id, String newPassword) async {
+    try {
+      await _dio.patch(
+        '${ApiConfig.users}/$id/password',
+        data: {'password': newPassword},
       );
-    });
+      return true;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
   }
 
-  List<User> _generateMockUsers() {
-    return [
-      User(
-        id: '1',
-        email: 'admin@couriertrack.com',
-        fullName: 'Admin User',
-        phone: '+1234567890',
-        role: 'admin',
-        isActive: true,
-        createdAt: DateTime.now(),
-      ),
-      User(
-        id: '2',
-        email: 'operator@couriertrack.com',
-        fullName: 'Operator User',
-        phone: '+1234567891',
-        role: 'operator',
-        isActive: true,
-        createdAt: DateTime.now(),
-      ),
-      User(
-        id: '3',
-        email: 'viewer@couriertrack.com',
-        fullName: 'Viewer User',
-        phone: '+1234567892',
-        role: 'viewer',
-        isActive: false,
-        createdAt: DateTime.now(),
-      ),
-    ];
+  // Error handling
+  String _handleError(DioException error) {
+    String errorMessage = 'An error occurred';
+
+    if (error.response != null) {
+      final data = error.response?.data;
+      if (data is Map && data.containsKey('error')) {
+        errorMessage = data['error'];
+      } else if (data is Map && data.containsKey('errors')) {
+        // Handle validation errors
+        final errors = data['errors'] as List;
+        if (errors.isNotEmpty) {
+          errorMessage = errors.first['message'] ?? errorMessage;
+        }
+      } else {
+        errorMessage = 'Server error: ${error.response?.statusCode}';
+      }
+    } else if (error.type == DioExceptionType.connectionTimeout) {
+      errorMessage = 'Connection timeout. Please check your internet connection.';
+    } else if (error.type == DioExceptionType.receiveTimeout) {
+      errorMessage = 'Receive timeout. Please try again.';
+    } else if (error.type == DioExceptionType.connectionError) {
+      errorMessage = 'Connection error. Please check your internet connection.';
+    } else {
+      errorMessage = 'Network error: ${error.message}';
+    }
+
+    return errorMessage;
   }
 }

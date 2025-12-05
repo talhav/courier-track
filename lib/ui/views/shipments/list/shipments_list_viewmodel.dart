@@ -41,7 +41,7 @@ class ShipmentsListViewModel extends BaseViewModel {
   Future<void> loadShipments() async {
     setBusy(true);
     try {
-      _shipments = await _apiService.getShipments(
+      final response = await _apiService.getShipments(
         startDate: _startDate,
         endDate: _endDate,
         destination: _destination,
@@ -51,8 +51,8 @@ class ShipmentsListViewModel extends BaseViewModel {
         limit: _itemsPerPage,
       );
 
-      // Calculate total pages (mock calculation)
-      _totalPages = (_shipments.length / _itemsPerPage).ceil();
+      _shipments = response.data;
+      _totalPages = response.pagination.totalPages;
       if (_totalPages == 0) _totalPages = 1;
 
       notifyListeners();

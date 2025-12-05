@@ -17,6 +17,7 @@ class UsersViewModel extends BaseViewModel {
   final emailController = TextEditingController();
   final fullNameController = TextEditingController();
   final phoneController = TextEditingController();
+  final passwordController = TextEditingController();
   String _selectedRole = 'user';
   bool _isActive = true;
 
@@ -63,6 +64,7 @@ class UsersViewModel extends BaseViewModel {
     emailController.clear();
     fullNameController.clear();
     phoneController.clear();
+    passwordController.clear();
     _selectedRole = 'user';
     _isActive = true;
     notifyListeners();
@@ -110,7 +112,7 @@ class UsersViewModel extends BaseViewModel {
           createdAt: DateTime.now(),
         );
 
-        await _apiService.createUser(user);
+        await _apiService.createUser(user, passwordController.text);
         _snackbarService.showSnackbar(
           message: 'User created successfully!',
           duration: const Duration(seconds: 2),
@@ -125,7 +127,7 @@ class UsersViewModel extends BaseViewModel {
           isActive: _isActive,
         );
 
-        await _apiService.updateUser(updatedUser);
+        await _apiService.updateUser(_editingUser!.id, updatedUser);
         _snackbarService.showSnackbar(
           message: 'User updated successfully!',
           duration: const Duration(seconds: 2),
@@ -169,6 +171,7 @@ class UsersViewModel extends BaseViewModel {
     emailController.dispose();
     fullNameController.dispose();
     phoneController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 }
