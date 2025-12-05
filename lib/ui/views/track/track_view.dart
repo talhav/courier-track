@@ -282,6 +282,113 @@ class TrackView extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: AppSizes.paddingMd),
+
+                    // Status History
+                    if (model.statusHistory.isNotEmpty)
+                      Card(
+                        elevation: AppSizes.cardElevation,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppSizes.radiusLg),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(AppSizes.paddingLg),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Status History',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(height: AppSizes.paddingMd),
+                              ...model.statusHistory.map((history) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: AppSizes.paddingMd),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: 12,
+                                        height: 12,
+                                        margin: const EdgeInsets.only(top: 4),
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.primary,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSizes.paddingMd),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              history.status.toUpperCase(),
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: AppColors.textPrimary,
+                                              ),
+                                            ),
+                                            if (history.notes != null) ...[
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                history.notes!,
+                                                style: GoogleFonts.roboto(
+                                                  fontSize: 13,
+                                                  color: AppColors.textSecondary,
+                                                ),
+                                              ),
+                                            ],
+                                            if (history.location != null) ...[
+                                              const SizedBox(height: 4),
+                                              Row(
+                                                children: [
+                                                  const Icon(Icons.location_on, size: 14, color: AppColors.textSecondary),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    history.location!,
+                                                    style: GoogleFonts.roboto(
+                                                      fontSize: 13,
+                                                      color: AppColors.textSecondary,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              DateFormat('MMM dd, yyyy HH:mm').format(history.createdAt),
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 12,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            ),
+                                            if (history.createdByName != null) ...[
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                'By: ${history.createdByName}',
+                                                style: GoogleFonts.roboto(
+                                                  fontSize: 12,
+                                                  color: AppColors.textSecondary,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ],
+                          ),
+                        ),
+                      ),
                   ],
                 ],
               ),
