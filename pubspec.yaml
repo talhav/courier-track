@@ -43,6 +43,7 @@ dependencies:
   auto_route: ^7.8.4
 
   # State management & Dependency Injection
+  get: ^4.7.3
   get_it: ^7.6.4
   injectable: ^2.3.2
 

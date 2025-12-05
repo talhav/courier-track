@@ -18,7 +18,7 @@ class UsersViewModel extends BaseViewModel {
   final fullNameController = TextEditingController();
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
-  String _selectedRole = 'user';
+  String _selectedRole = 'operator';
   bool _isActive = true;
 
   String get selectedRole => _selectedRole;
@@ -65,7 +65,7 @@ class UsersViewModel extends BaseViewModel {
     fullNameController.clear();
     phoneController.clear();
     passwordController.clear();
-    _selectedRole = 'user';
+    _selectedRole = 'operator';
     _isActive = true;
     notifyListeners();
   }
@@ -90,12 +90,51 @@ class UsersViewModel extends BaseViewModel {
       return false;
     }
 
+    // Validate email format
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text)) {
+      _snackbarService.showSnackbar(
+        message: 'Please enter a valid email address',
+        duration: const Duration(seconds: 2),
+      );
+      return false;
+    }
+
     if (fullNameController.text.isEmpty) {
       _snackbarService.showSnackbar(
         message: 'Please enter full name',
         duration: const Duration(seconds: 2),
       );
       return false;
+    }
+
+    // Validate phone number (only digits if provided)
+    if (phoneController.text.isNotEmpty) {
+      if (!RegExp(r'^\d+$').hasMatch(phoneController.text)) {
+        _snackbarService.showSnackbar(
+          message: 'Phone number must contain only digits',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
+    }
+
+    // Validate password for new users
+    if (_editingUser == null) {
+      if (passwordController.text.isEmpty) {
+        _snackbarService.showSnackbar(
+          message: 'Please enter password',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
+
+      if (passwordController.text.length < 6) {
+        _snackbarService.showSnackbar(
+          message: 'Password must be at least 6 characters',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
     }
 
     setBusy(true);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +12,7 @@ import 'users_viewmodel.dart';
 
 @RoutePage()
 class UsersView extends StatelessWidget {
-  const UsersView({Key? key}) : super(key: key);
+  const UsersView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -197,8 +198,11 @@ class UsersView extends StatelessWidget {
       case 'admin':
         color = AppColors.error;
         break;
-      case 'manager':
+      case 'operator':
         color = AppColors.info;
+        break;
+      case 'viewer':
+        color = AppColors.textSecondary;
         break;
       default:
         color = AppColors.textSecondary;
@@ -259,9 +263,7 @@ class UsersView extends StatelessWidget {
 
     await showDialog(
       context: context,
-      builder: (context) => ViewModelBuilder<UsersViewModel>.reactive(
-        viewModelBuilder: () => model,
-        builder: (context, model, child) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
           title: Text(
             isEdit ? 'Edit User' : 'Create New User',
             style: GoogleFonts.poppins(
@@ -302,8 +304,26 @@ class UsersView extends StatelessWidget {
                       fillColor: AppColors.background,
                     ),
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
                   ),
                   const SizedBox(height: AppSizes.paddingMd),
+                  if (!isEdit)
+                    Column(
+                      children: [
+                        TextFormField(
+                          controller: model.passwordController,
+                          decoration: const InputDecoration(
+                            labelText: 'Password *',
+                            filled: true,
+                            fillColor: AppColors.background,
+                          ),
+                          obscureText: true,
+                        ),
+                        const SizedBox(height: AppSizes.paddingMd),
+                      ],
+                    ),
                   DropdownButtonFormField<String>(
                     value: model.selectedRole,
                     decoration: const InputDecoration(
@@ -312,8 +332,8 @@ class UsersView extends StatelessWidget {
                       fillColor: AppColors.background,
                     ),
                     items: const [
-                      DropdownMenuItem(value: 'user', child: Text('User')),
-                      DropdownMenuItem(value: 'manager', child: Text('Manager')),
+                      DropdownMenuItem(value: 'viewer', child: Text('Viewer')),
+                      DropdownMenuItem(value: 'operator', child: Text('Operator')),
                       DropdownMenuItem(value: 'admin', child: Text('Admin')),
                     ],
                     onChanged: model.setRole,
@@ -331,36 +351,39 @@ class UsersView extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Cancel'),
             ),
-            ElevatedButton(
-              onPressed: model.isBusy
-                  ? null
-                  : () async {
-                      final success = await model.saveUser();
-                      if (success && context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textWhite,
+            StatefulBuilder(
+              builder: (context, setState) => ElevatedButton(
+                onPressed: model.isBusy
+                    ? null
+                    : () async {
+                        setState(() {}); // Trigger rebuild
+                        final success = await model.saveUser();
+                        if (success && dialogContext.mounted) {
+                          Navigator.of(dialogContext).pop();
+                        }
+                        setState(() {}); // Trigger rebuild
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.textWhite,
+                ),
+                child: model.isBusy
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.textWhite),
+                        ),
+                      )
+                    : Text(isEdit ? 'Update' : 'Create'),
               ),
-              child: model.isBusy
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.textWhite),
-                      ),
-                    )
-                  : Text(isEdit ? 'Update' : 'Create'),
             ),
           ],
         ),
-      ),
     );
   }
 

@@ -198,6 +198,17 @@ class CreateShipmentViewModel extends BaseViewModel {
       return false;
     }
 
+    // Validate shipper phone number (only digits)
+    if (shipperPhoneController.text.isNotEmpty) {
+      if (!RegExp(r'^\d+$').hasMatch(shipperPhoneController.text)) {
+        _snackbarService.showSnackbar(
+          message: 'Shipper phone number must contain only digits',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
+    }
+
     if (_shipperCountry == null) {
       _snackbarService.showSnackbar(
         message: 'Please select shipper country',
@@ -214,6 +225,28 @@ class CreateShipmentViewModel extends BaseViewModel {
       return false;
     }
 
+    // Validate receiver email format
+    if (receiverEmailController.text.isNotEmpty) {
+      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(receiverEmailController.text)) {
+        _snackbarService.showSnackbar(
+          message: 'Please enter a valid email address',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
+    }
+
+    // Validate receiver phone number (only digits)
+    if (receiverPhoneController.text.isNotEmpty) {
+      if (!RegExp(r'^\d+$').hasMatch(receiverPhoneController.text)) {
+        _snackbarService.showSnackbar(
+          message: 'Receiver phone number must contain only digits',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
+    }
+
     if (_receiverCountry == null) {
       _snackbarService.showSnackbar(
         message: 'Please select receiver country',
@@ -222,9 +255,36 @@ class CreateShipmentViewModel extends BaseViewModel {
       return false;
     }
 
+    // Validate account number
     if (accountNoController.text.isEmpty) {
       _snackbarService.showSnackbar(
         message: 'Please enter account number',
+        duration: const Duration(seconds: 2),
+      );
+      return false;
+    }
+
+    if (accountNoController.text.trim().isEmpty) {
+      _snackbarService.showSnackbar(
+        message: 'Account number cannot be empty',
+        duration: const Duration(seconds: 2),
+      );
+      return false;
+    }
+
+    // Validate pieces
+    if (piecesController.text.isEmpty) {
+      _snackbarService.showSnackbar(
+        message: 'Please enter number of pieces',
+        duration: const Duration(seconds: 2),
+      );
+      return false;
+    }
+
+    final pieces = int.tryParse(piecesController.text);
+    if (pieces == null || pieces <= 0) {
+      _snackbarService.showSnackbar(
+        message: 'Pieces must be a valid number greater than 0',
         duration: const Duration(seconds: 2),
       );
       return false;
@@ -236,6 +296,69 @@ class CreateShipmentViewModel extends BaseViewModel {
         duration: const Duration(seconds: 2),
       );
       return false;
+    }
+
+    // Validate box dimensions if shipment type is box
+    if (_shipmentType == ShipmentType.nonDocsBox) {
+      if (lengthController.text.isEmpty ||
+          widthController.text.isEmpty ||
+          heightController.text.isEmpty) {
+        _snackbarService.showSnackbar(
+          message: 'Please enter all box dimensions (length, width, height)',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
+
+      final length = double.tryParse(lengthController.text);
+      final width = double.tryParse(widthController.text);
+      final height = double.tryParse(heightController.text);
+
+      if (length == null || length <= 0) {
+        _snackbarService.showSnackbar(
+          message: 'Length must be a valid number greater than 0',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
+
+      if (width == null || width <= 0) {
+        _snackbarService.showSnackbar(
+          message: 'Width must be a valid number greater than 0',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
+
+      if (height == null || height <= 0) {
+        _snackbarService.showSnackbar(
+          message: 'Height must be a valid number greater than 0',
+          duration: const Duration(seconds: 2),
+        );
+        return false;
+      }
+
+      if (weightController.text.isNotEmpty) {
+        final weight = double.tryParse(weightController.text);
+        if (weight == null || weight <= 0) {
+          _snackbarService.showSnackbar(
+            message: 'Weight must be a valid number greater than 0',
+            duration: const Duration(seconds: 2),
+          );
+          return false;
+        }
+      }
+
+      if (volumetricWeightController.text.isNotEmpty) {
+        final volWeight = double.tryParse(volumetricWeightController.text);
+        if (volWeight == null || volWeight <= 0) {
+          _snackbarService.showSnackbar(
+            message: 'Volumetric weight must be a valid number greater than 0',
+            duration: const Duration(seconds: 2),
+          );
+          return false;
+        }
+      }
     }
 
     return true;
