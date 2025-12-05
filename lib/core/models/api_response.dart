@@ -59,7 +59,6 @@ class LoginResponse {
 @JsonSerializable()
 class StatusHistoryItem {
   final String id;
-  final String shipmentId;
   final String status;
   final String? location;
   final String? notes;
@@ -69,7 +68,6 @@ class StatusHistoryItem {
 
   StatusHistoryItem({
     required this.id,
-    required this.shipmentId,
     required this.status,
     this.location,
     this.notes,

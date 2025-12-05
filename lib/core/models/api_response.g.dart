@@ -55,8 +55,7 @@ Map<String, dynamic> _$LoginResponseToJson(LoginResponse instance) =>
 
 StatusHistoryItem _$StatusHistoryItemFromJson(Map<String, dynamic> json) =>
     StatusHistoryItem(
-      id: json['_id'] as String,
-      shipmentId: json['shipmentId'] as String,
+      id: json['id'] as String,
       status: json['status'] as String,
       location: json['location'] as String?,
       notes: json['notes'] as String?,
@@ -68,7 +67,6 @@ StatusHistoryItem _$StatusHistoryItemFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$StatusHistoryItemToJson(StatusHistoryItem instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'shipmentId': instance.shipmentId,
       'status': instance.status,
       'location': instance.location,
       'notes': instance.notes,

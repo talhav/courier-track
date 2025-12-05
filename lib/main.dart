@@ -116,12 +116,11 @@ class MyApp extends StatelessWidget {
     final routeInformationParser = appRouter.defaultRouteParser();
     final routeInformationProvider = appRouter.routeInfoProvider();
 
-    return SelectionArea(
-      child: GetMaterialApp.router(
-        scaffoldMessengerKey: scaffoldMessengerKey,
-        title: 'Courier Track',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
+    return GetMaterialApp.router(
+      scaffoldMessengerKey: scaffoldMessengerKey,
+      title: 'Courier Track',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
         primaryColor: AppColors.primary,
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
@@ -169,7 +168,6 @@ class MyApp extends StatelessWidget {
       routerDelegate: routerDelegate,
       routeInformationParser: routeInformationParser,
       routeInformationProvider: routeInformationProvider,
-      ),
     );
   }
 }

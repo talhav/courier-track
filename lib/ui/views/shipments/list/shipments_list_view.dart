@@ -361,30 +361,7 @@ class ShipmentsListView extends StatelessWidget {
                 ),
               ),
 
-              // Status
-              SizedBox(
-                width: 200,
-                child: DropdownButtonFormField<ShipmentStatus>(
-                  decoration: const InputDecoration(
-                    labelText: 'Status',
-                    isDense: true,
-                  ),
-                  value: model.selectedStatus,
-                  items: [
-                    const DropdownMenuItem(
-                      value: null,
-                      child: Text('All Statuses'),
-                    ),
-                    ...ShipmentStatus.values.map((status) {
-                      return DropdownMenuItem(
-                        value: status,
-                        child: Text(status.displayName),
-                      );
-                    }).toList(),
-                  ],
-                  onChanged: model.setStatus,
-                ),
-              ),
+              const SizedBox(width: AppSizes.paddingMd),
 
               // Apply Button
               ElevatedButton(
@@ -426,7 +403,6 @@ class ShipmentsListView extends StatelessWidget {
                 DataColumn(label: Text('Shipper Name', style: TextStyle(fontWeight: FontWeight.bold))),
                 DataColumn(label: Text('Consignee Name', style: TextStyle(fontWeight: FontWeight.bold))),
                 DataColumn(label: Text('Service', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold))),
                 DataColumn(label: Text('Date', style: TextStyle(fontWeight: FontWeight.bold))),
                 DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
               ],
@@ -437,7 +413,6 @@ class ShipmentsListView extends StatelessWidget {
                     DataCell(Text(shipment.shipperName)),
                     DataCell(Text(shipment.receiverName)),
                     DataCell(_buildServiceChip(shipment.service)),
-                    DataCell(_buildStatusChip(shipment.status)),
                     DataCell(Text(DateFormat('yyyy-MM-dd HH:mm').format(shipment.createdAt))),
                     DataCell(
                       Row(
@@ -483,47 +458,6 @@ class ShipmentsListView extends StatelessWidget {
         service.displayName,
         style: const TextStyle(
           color: AppColors.info,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(ShipmentStatus status) {
-    Color color;
-    switch (status) {
-      case ShipmentStatus.delivered:
-        color = AppColors.success;
-        break;
-      case ShipmentStatus.inTransit:
-        color = AppColors.info;
-        break;
-      case ShipmentStatus.pending:
-        color = AppColors.warning;
-        break;
-      case ShipmentStatus.cancelled:
-      case ShipmentStatus.returned:
-        color = AppColors.error;
-        break;
-      case ShipmentStatus.onHold:
-        color = AppColors.textSecondary;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.paddingSm,
-        vertical: AppSizes.paddingXs,
-      ),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(AppSizes.radiusSm),
-      ),
-      child: Text(
-        status.displayName,
-        style: TextStyle(
-          color: color,
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
