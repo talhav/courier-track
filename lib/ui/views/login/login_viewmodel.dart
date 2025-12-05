@@ -2,12 +2,12 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import '../../../app/app.locator.dart';
-import '../../../app/app.router.dart';
+import '../../../app/router.dart';
 import '../../../core/services/auth_service.dart';
 
 class LoginViewModel extends BaseViewModel {
   final _authService = locator<AuthService>();
-  final _navigationService = locator<NavigationService>();
+  final _router = locator<AppRouter>();
   final _snackbarService = locator<SnackbarService>();
 
   String _email = '';
@@ -46,7 +46,7 @@ class LoginViewModel extends BaseViewModel {
         message: 'Login successful!',
         duration: const Duration(seconds: 2),
       );
-      _navigationService.replaceWith(Routes.shipmentsListView);
+      _router.replaceAll([const ShipmentsListRoute()]);
     } else {
       _snackbarService.showSnackbar(
         message: 'Invalid credentials. Please try again.',

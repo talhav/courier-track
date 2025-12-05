@@ -3,7 +3,9 @@
     "allow": [
       "Bash(flutter pub:*)",
       "Bash(dart run build_runner:*)",
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(flutter run:*)"
     ],
     "deny": [],
     "ask": []

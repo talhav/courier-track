@@ -3,12 +3,13 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import '../../../../app/app.locator.dart';
+import '../../../../app/router.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/services/api_service.dart';
 
 class CreateShipmentViewModel extends BaseViewModel {
   final _apiService = locator<ApiService>();
-  final _navigationService = locator<NavigationService>();
+  final _router = locator<AppRouter>();
   final _snackbarService = locator<SnackbarService>();
 
   // Form controllers
@@ -152,7 +153,7 @@ class CreateShipmentViewModel extends BaseViewModel {
         duration: const Duration(seconds: 2),
       );
 
-      _navigationService.back();
+      _router.maybePop();
     } catch (e) {
       _snackbarService.showSnackbar(
         message: 'Failed to create shipment: $e',

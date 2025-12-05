@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 
 import 'app/app.locator.dart';
-import 'app/app.router.dart';
+import 'app/router.dart';
 import 'core/constants/app_colors.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/api_service.dart';
@@ -19,7 +18,7 @@ void main() async {
 
   // Create Dio instance
   final dio = Dio(BaseOptions(
-    baseUrl: 'https://api.couriertrack.com',
+    baseUrl: 'http://localhost:3000/api',
     connectTimeout: const Duration(seconds: 30),
     receiveTimeout: const Duration(seconds: 30),
     headers: {
@@ -32,8 +31,8 @@ void main() async {
   // Register services manually
   locator.registerLazySingleton(() => prefs);
   locator.registerLazySingleton(() => dio);
-  locator.registerLazySingleton(() => AuthService(prefs));
   locator.registerLazySingleton(() => ApiService(dio));
+  locator.registerLazySingleton(() => AuthService(prefs, locator<ApiService>()));
 
   runApp(const MyApp());
 }
@@ -43,7 +42,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    final appRouter = locator<AppRouter>();
+
+    return MaterialApp.router(
       title: 'Courier Track',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -91,12 +92,7 @@ class MyApp extends StatelessWidget {
           fillColor: AppColors.surface,
         ),
       ),
-      initialRoute: Routes.loginView,
-      onGenerateRoute: StackedRouter().onGenerateRoute,
-      navigatorKey: StackedService.navigatorKey,
-      navigatorObservers: [
-        StackedService.routeObserver,
-      ],
+      routerConfig: appRouter.config(),
     );
   }
 }

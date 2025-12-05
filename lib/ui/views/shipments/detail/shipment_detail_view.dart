@@ -1,41 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:auto_route/auto_route.dart';
 
 import '../../../../app/app.locator.dart';
+import '../../../../app/router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/models/models.dart';
 import 'shipment_detail_viewmodel.dart';
 
+@RoutePage()
 class ShipmentDetailView extends StatelessWidget {
-  final Shipment? shipment;
+  final String id;
 
-  const ShipmentDetailView({Key? key, this.shipment}) : super(key: key);
+  const ShipmentDetailView({Key? key, @PathParam('id') required this.id}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Get shipment from arguments if not provided directly
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    final actualShipment = shipment ?? args?['shipment'] as Shipment?;
-
-    if (actualShipment == null) {
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppColors.primaryDark,
-          foregroundColor: AppColors.textWhite,
-          title: const Text('Error'),
-        ),
-        body: const Center(
-          child: Text('Shipment not found'),
-        ),
-      );
-    }
-
     return ViewModelBuilder<ShipmentDetailViewModel>.reactive(
-      viewModelBuilder: () => ShipmentDetailViewModel(shipment: actualShipment),
+      viewModelBuilder: () => ShipmentDetailViewModel(shipmentId: id),
+      onViewModelReady: (model) => model.initialize(),
       builder: (context, model, child) => Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
@@ -49,22 +35,28 @@ class ShipmentDetailView extends StatelessWidget {
             ),
           ),
           elevation: 0,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: AppSizes.paddingMd),
-              child: ElevatedButton.icon(
-                onPressed: () => _showInvoiceTypeDialog(context, model),
-                icon: const Icon(Icons.copy, size: 18),
-                label: const Text('Duplicate Shipment'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: AppColors.textWhite,
-                ),
-              ),
-            ),
-          ],
+          actions: model.shipment != null
+              ? [
+                  Padding(
+                    padding: const EdgeInsets.only(right: AppSizes.paddingMd),
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showInvoiceTypeDialog(context, model),
+                      icon: const Icon(Icons.copy, size: 18),
+                      label: const Text('Duplicate Shipment'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                        foregroundColor: AppColors.textWhite,
+                      ),
+                    ),
+                  ),
+                ]
+              : null,
         ),
-        body: SingleChildScrollView(
+        body: model.isBusy
+            ? const Center(child: CircularProgressIndicator())
+            : model.shipment == null
+                ? const Center(child: Text('Shipment not found'))
+                : SingleChildScrollView(
           padding: const EdgeInsets.all(AppSizes.paddingLg),
           child: Center(
             child: Container(
@@ -94,7 +86,7 @@ class ShipmentDetailView extends StatelessWidget {
                       child: Column(
                         children: [
                           Text(
-                            actualShipment.consigneeNumber,
+                            model.shipment!.consigneeNumber,
                             style: GoogleFonts.poppins(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -102,10 +94,10 @@ class ShipmentDetailView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: AppSizes.paddingSm),
-                          _buildStatusChip(actualShipment.status),
+                          _buildStatusChip(model.shipment!.status),
                           const SizedBox(height: AppSizes.paddingMd),
                           Text(
-                            'Created: ${DateFormat('MMM dd, yyyy HH:mm').format(actualShipment.createdAt)}',
+                            'Created: ${DateFormat('MMM dd, yyyy HH:mm').format(model.shipment!.createdAt)}',
                             style: GoogleFonts.roboto(
                               fontSize: 14,
                               color: AppColors.textWhite.withOpacity(0.9),
@@ -121,8 +113,8 @@ class ShipmentDetailView extends StatelessWidget {
                   _buildInfoCard(
                     title: 'Service & Company',
                     items: [
-                      _InfoItem(label: 'Service Type', value: actualShipment.service.displayName),
-                      _InfoItem(label: 'Company Name', value: actualShipment.companyName),
+                      _InfoItem(label: 'Service Type', value: model.shipment!.service.displayName),
+                      _InfoItem(label: 'Company Name', value: model.shipment!.companyName),
                     ],
                   ),
                   const SizedBox(height: AppSizes.paddingMd),
@@ -131,12 +123,12 @@ class ShipmentDetailView extends StatelessWidget {
                   _buildInfoCard(
                     title: 'Shipper Information',
                     items: [
-                      _InfoItem(label: 'Name', value: actualShipment.shipperName),
-                      _InfoItem(label: 'Phone', value: actualShipment.shipperPhone),
-                      _InfoItem(label: 'Address', value: actualShipment.shipperAddress),
-                      _InfoItem(label: 'Country', value: model.getCountryName(actualShipment.shipperCountry)),
-                      _InfoItem(label: 'City', value: actualShipment.shipperCity),
-                      _InfoItem(label: 'Postal Code', value: actualShipment.shipperPostal),
+                      _InfoItem(label: 'Name', value: model.shipment!.shipperName),
+                      _InfoItem(label: 'Phone', value: model.shipment!.shipperPhone),
+                      _InfoItem(label: 'Address', value: model.shipment!.shipperAddress),
+                      _InfoItem(label: 'Country', value: model.getCountryName(model.shipment!.shipperCountry)),
+                      _InfoItem(label: 'City', value: model.shipment!.shipperCity),
+                      _InfoItem(label: 'Postal Code', value: model.shipment!.shipperPostal),
                     ],
                   ),
                   const SizedBox(height: AppSizes.paddingMd),
@@ -145,14 +137,14 @@ class ShipmentDetailView extends StatelessWidget {
                   _buildInfoCard(
                     title: 'Consignee Information',
                     items: [
-                      _InfoItem(label: 'Company Name', value: actualShipment.consigneeCompanyName),
-                      _InfoItem(label: 'Receiver Name', value: actualShipment.receiverName),
-                      _InfoItem(label: 'Email', value: actualShipment.receiverEmail),
-                      _InfoItem(label: 'Phone', value: actualShipment.receiverPhone),
-                      _InfoItem(label: 'Address', value: actualShipment.receiverAddress),
-                      _InfoItem(label: 'Country', value: model.getCountryName(actualShipment.receiverCountry)),
-                      _InfoItem(label: 'City', value: actualShipment.receiverCity),
-                      _InfoItem(label: 'Zip Code', value: actualShipment.receiverZip),
+                      _InfoItem(label: 'Company Name', value: model.shipment!.consigneeCompanyName),
+                      _InfoItem(label: 'Receiver Name', value: model.shipment!.receiverName),
+                      _InfoItem(label: 'Email', value: model.shipment!.receiverEmail),
+                      _InfoItem(label: 'Phone', value: model.shipment!.receiverPhone),
+                      _InfoItem(label: 'Address', value: model.shipment!.receiverAddress),
+                      _InfoItem(label: 'Country', value: model.getCountryName(model.shipment!.receiverCountry)),
+                      _InfoItem(label: 'City', value: model.shipment!.receiverCity),
+                      _InfoItem(label: 'Zip Code', value: model.shipment!.receiverZip),
                     ],
                   ),
                   const SizedBox(height: AppSizes.paddingMd),
@@ -161,44 +153,44 @@ class ShipmentDetailView extends StatelessWidget {
                   _buildInfoCard(
                     title: 'Shipment Details',
                     items: [
-                      _InfoItem(label: 'Account Number', value: actualShipment.accountNo),
-                      _InfoItem(label: 'Shipment Type', value: actualShipment.shipmentType.displayName),
-                      _InfoItem(label: 'Pieces', value: actualShipment.pieces.toString()),
-                      _InfoItem(label: 'Description', value: actualShipment.description),
-                      _InfoItem(label: 'Fragile', value: actualShipment.fragile ? 'Yes' : 'No'),
-                      _InfoItem(label: 'Currency', value: actualShipment.currency.displayName),
-                      if (actualShipment.shipperReference != null)
-                        _InfoItem(label: 'Shipper Reference', value: actualShipment.shipperReference!),
-                      if (actualShipment.comments != null)
-                        _InfoItem(label: 'Comments', value: actualShipment.comments!),
+                      _InfoItem(label: 'Account Number', value: model.shipment!.accountNo),
+                      _InfoItem(label: 'Shipment Type', value: model.shipment!.shipmentType.displayName),
+                      _InfoItem(label: 'Pieces', value: model.shipment!.pieces.toString()),
+                      _InfoItem(label: 'Description', value: model.shipment!.description),
+                      _InfoItem(label: 'Fragile', value: model.shipment!.fragile ? 'Yes' : 'No'),
+                      _InfoItem(label: 'Currency', value: model.shipment!.currency.displayName),
+                      if (model.shipment!.shipperReference != null)
+                        _InfoItem(label: 'Shipper Reference', value: model.shipment!.shipperReference!),
+                      if (model.shipment!.comments != null)
+                        _InfoItem(label: 'Comments', value: model.shipment!.comments!),
                     ],
                   ),
                   const SizedBox(height: AppSizes.paddingMd),
 
                   // Box Dimensions (if applicable)
-                  if (actualShipment.shipmentType == ShipmentType.nonDocsBox)
+                  if (model.shipment!.shipmentType == ShipmentType.nonDocsBox)
                     _buildInfoCard(
                       title: 'Box Dimensions',
                       items: [
-                        if (actualShipment.totalVolumetricWeight != null)
+                        if (model.shipment!.totalVolumetricWeight != null)
                           _InfoItem(
                             label: 'Total Volumetric Weight',
-                            value: actualShipment.totalVolumetricWeight.toString(),
+                            value: model.shipment!.totalVolumetricWeight.toString(),
                           ),
-                        if (actualShipment.dimensions != null)
-                          _InfoItem(label: 'Dimensions (L x W x H)', value: actualShipment.dimensions!),
-                        if (actualShipment.weight != null)
-                          _InfoItem(label: 'Weight', value: actualShipment.weight.toString()),
+                        if (model.shipment!.dimensions != null)
+                          _InfoItem(label: 'Dimensions (L x W x H)', value: model.shipment!.dimensions!),
+                        if (model.shipment!.weight != null)
+                          _InfoItem(label: 'Weight', value: model.shipment!.weight.toString()),
                       ],
                     ),
 
                   // Invoice Type (if duplicated)
-                  if (actualShipment.invoiceType != null) ...[
+                  if (model.shipment!.invoiceType != null) ...[
                     const SizedBox(height: AppSizes.paddingMd),
                     _buildInfoCard(
                       title: 'Invoice Information',
                       items: [
-                        _InfoItem(label: 'Invoice Type', value: actualShipment.invoiceType!.displayName),
+                        _InfoItem(label: 'Invoice Type', value: model.shipment!.invoiceType!.displayName),
                       ],
                     ),
                   ],
@@ -382,16 +374,14 @@ class ShipmentDetailView extends StatelessWidget {
 
     if (result == true && selectedInvoiceType != null) {
       // Navigate to create shipment with duplicated data
-      final duplicatedShipment = model.shipment.copyWith(
-        invoiceType: selectedInvoiceType,
-      );
+      // TODO: Pass duplicated shipment data to CreateShipmentViewModel
+      // final duplicatedShipment = model.shipment?.copyWith(
+      //   invoiceType: selectedInvoiceType,
+      // );
 
-      // Use the navigation service to navigate with arguments
-      final navigationService = locator<NavigationService>();
-      await navigationService.navigateTo(
-        '/create-shipment-view',
-        arguments: {'duplicateFrom': duplicatedShipment},
-      );
+      // Use AutoRoute to navigate
+      final router = locator<AppRouter>();
+      await router.push(const CreateShipmentRoute());
     }
   }
 }
@@ -401,11 +391,4 @@ class _InfoItem {
   final String value;
 
   _InfoItem({required this.label, required this.value});
-}
-
-// For arguments compatibility with router
-class ShipmentDetailViewArguments {
-  final Shipment shipment;
-
-  ShipmentDetailViewArguments({required this.shipment});
 }
