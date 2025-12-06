@@ -178,6 +178,20 @@ class ApiService {
     }
   }
 
+  Future<List<int>> downloadInvoice(String shipmentId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConfig.shipments}/$shipmentId/download-invoice',
+        options: Options(
+          responseType: ResponseType.bytes,
+        ),
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // User APIs
   Future<List<User>> getUsers() async {
     try {

@@ -38,6 +38,18 @@ class ShipmentDetailView extends StatelessWidget {
           actions: model.shipment != null
               ? [
                   Padding(
+                    padding: const EdgeInsets.only(right: AppSizes.paddingSm),
+                    child: ElevatedButton.icon(
+                      onPressed: model.downloadInvoice,
+                      icon: const Icon(Icons.download_outlined, size: 18),
+                      label: const Text('Download Invoice'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textWhite,
+                      ),
+                    ),
+                  ),
+                  Padding(
                     padding: const EdgeInsets.only(right: AppSizes.paddingMd),
                     child: ElevatedButton.icon(
                       onPressed: () => _showInvoiceTypeDialog(context, model),

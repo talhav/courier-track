@@ -63,6 +63,8 @@ dependencies:
   # Utilities
   logger: ^2.0.2+1
   shared_preferences: ^2.2.2
+  url_launcher: ^6.3.2
+  universal_html: ^2.3.0
 
 dev_dependencies:
   flutter_test:

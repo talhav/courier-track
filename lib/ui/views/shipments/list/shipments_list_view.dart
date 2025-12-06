@@ -424,11 +424,9 @@ class ShipmentsListView extends StatelessWidget {
                             tooltip: 'View Details',
                           ),
                           IconButton(
-                            icon: const Icon(Icons.print_outlined, size: 20),
-                            onPressed: () {
-                              // TODO: Implement print invoice
-                            },
-                            tooltip: 'Print Invoice',
+                            icon: const Icon(Icons.download_outlined, size: 20),
+                            onPressed: () => model.downloadInvoice(shipment),
+                            tooltip: 'Download Invoice',
                           ),
                         ],
                       ),

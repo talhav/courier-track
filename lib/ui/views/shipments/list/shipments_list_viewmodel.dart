@@ -1,5 +1,6 @@
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:universal_html/html.dart' as html;
 
 import '../../../../app/app.locator.dart';
 import '../../../../app/router.dart';
@@ -141,6 +142,39 @@ class ShipmentsListViewModel extends BaseViewModel {
 
   void navigateToTrack() {
     _router.push(const TrackRoute());
+  }
+
+  Future<void> downloadInvoice(Shipment shipment) async {
+    try {
+      _snackbarService.showSnackbar(
+        message: 'Downloading invoice...',
+        duration: const Duration(seconds: 2),
+      );
+
+      final bytes = await _apiService.downloadInvoice(shipment.id.toString());
+
+      // Create a blob from the bytes
+      final blob = html.Blob([bytes], 'application/pdf');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+
+      // Create a temporary anchor element and trigger download
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', 'invoice-${shipment.consigneeNumber}.pdf')
+        ..click();
+
+      // Clean up
+      html.Url.revokeObjectUrl(url);
+
+      _snackbarService.showSnackbar(
+        message: 'Invoice downloaded successfully',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Failed to download invoice: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 
   Future<void> logout() async {
